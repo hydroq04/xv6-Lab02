@@ -141,6 +141,8 @@ found:
   p->context.ra = (uint64)forkret;
   p->context.sp = p->kstack + PGSIZE;
 
+  p->trace_mask = 0;
+
   return p;
 }
 
@@ -164,6 +166,7 @@ freeproc(struct proc *p)
   p->killed = 0;
   p->xstate = 0;
   p->state = UNUSED;
+  p->trace_mask = 0;
 }
 
 // Create a user page table for a given process,
@@ -313,6 +316,11 @@ fork(void)
 
   acquire(&np->lock);
   np->state = RUNNABLE;
+  release(&np->lock);
+
+  // Explain this
+  acquire(&np->lock);
+  np->trace_mask = p->trace_mask;
   release(&np->lock);
 
   return pid;
@@ -655,17 +663,17 @@ procdump(void)
   }
 }
 
-int nproc(void){
+int nproc(void) {
   struct proc* p;
   int count = 0;
 
-  //kiểm tra từng tiến trình có trong danh sách proc
-  for(p = proc; p < &proc[NPROC]; p++){
-    acquire(&p->lock);  //lấy khóa
-    if(p->state != UNUSED){
+  // Check if process is in proc list
+  for(p = proc; p < &proc[NPROC]; p++) {
+    acquire(&p->lock);  // take the key
+    if(p->state != UNUSED) {
       count++;
     }
-    release(&p->lock); //trả khóa
+    release(&p->lock); // release the key
   }
   return count;
 }

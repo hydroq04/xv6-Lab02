@@ -81,17 +81,17 @@ kalloc(void)
   return (void*)r;
 }
 
-int freemem(void){
+int freemem(void) {
   struct run *r;
   int count = 0;
 
-  acquire(&kmem.lock); // lấy khóa truy cập freelist
+  acquire(&kmem.lock); // take the freelist access key
   r = kmem.freelist;
-  while(r){  //kiểm tra page có trống hay không
+  while(r) {  // empty page check
     count++;
     r = r->next;
   }
-  release(&kmem.lock); //trả khóa truy cập freelist
+  release(&kmem.lock); // release the freelist access key
 
   return count * 4096;
 }

@@ -7,6 +7,7 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "sysinfo.h"
+
 uint64
 sys_exit(void)
 {
@@ -96,23 +97,30 @@ sys_uptime(void)
   return xticks;
 }
 
-uint64
-sys_sysinfo(void){
+uint64 sys_trace(void) {
+  int trace_mask;
+  if(argint(0, &trace_mask) < 0)
+    return -1;
+  myproc()->trace_mask = trace_mask;
+  return 0;
+}
+
+uint64 sys_sysinfo(void) {
   struct sysinfo info;
   struct proc* p = myproc();
 
   uint64 uaddr;
 
-  if(argaddr(0,&uaddr) < 0){
+  if(argaddr(0, &uaddr) < 0){
     return -1;
   }
-  
-  //lấy dữ liệu của hệ thống
-  info.freemem = freemem(); //số bytes còn trống;
-  info.nproc = nproc();   //số tiến trình không phải UNUSED
 
-  //sao chép info ra user's memory
-  if(copyout(p->pagetable,uaddr,(char*)&info,sizeof(info)) < 0){
+  // Get data from the system
+  info.freemem = freemem(); // Empty bytes
+  info.nproc = nproc();   // Processes that are not UNUSED count
+
+  // Copy information to user's memory
+  if (copyout(p->pagetable, uaddr, (char*)&info, sizeof(info)) < 0) {
     return -1;
   }
 
