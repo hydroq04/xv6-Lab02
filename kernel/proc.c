@@ -654,3 +654,18 @@ procdump(void)
     printf("\n");
   }
 }
+
+int nproc(void){
+  struct proc* p;
+  int count = 0;
+
+  //kiểm tra từng tiến trình có trong danh sách proc
+  for(p = proc; p < &proc[NPROC]; p++){
+    acquire(&p->lock);  //lấy khóa
+    if(p->state != UNUSED){
+      count++;
+    }
+    release(&p->lock); //trả khóa
+  }
+  return count;
+}

@@ -6,7 +6,7 @@
 #include "memlayout.h"
 #include "spinlock.h"
 #include "proc.h"
-
+#include "sysinfo.h"
 uint64
 sys_exit(void)
 {
@@ -94,4 +94,27 @@ sys_uptime(void)
   xticks = ticks;
   release(&tickslock);
   return xticks;
+}
+
+uint64
+sys_sysinfo(void){
+  struct sysinfo info;
+  struct proc* p = myproc();
+
+  uint64 uaddr;
+
+  if(argaddr(0,&uaddr) < 0){
+    return -1;
+  }
+  
+  //lấy dữ liệu của hệ thống
+  info.freemem = freemem(); //số bytes còn trống;
+  info.nproc = nproc();   //số tiến trình không phải UNUSED
+
+  //sao chép info ra user's memory
+  if(copyout(p->pagetable,uaddr,(char*)&info,sizeof(info)) < 0){
+    return -1;
+  }
+
+  return 0;
 }

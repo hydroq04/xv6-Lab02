@@ -80,3 +80,18 @@ kalloc(void)
     memset((char*)r, 5, PGSIZE); // fill with junk
   return (void*)r;
 }
+
+int freemem(void){
+  struct run *r;
+  int count = 0;
+
+  acquire(&kmem.lock); // lấy khóa truy cập freelist
+  r = kmem.freelist;
+  while(r){  //kiểm tra page có trống hay không
+    count++;
+    r = r->next;
+  }
+  release(&kmem.lock); //trả khóa truy cập freelist
+
+  return count * 4096;
+}
